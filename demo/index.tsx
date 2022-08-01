@@ -3,6 +3,7 @@ import './global-panzoom'
 
 import ContainInside from './examples/ContainInside'
 import ContainOutside from './examples/ContainOutside'
+import ContainTrue from './examples/ContainTrue'
 import DisabledYAxis from './examples/DisabledYAxis'
 import Exclude from './examples/Exclude'
 import Focal from './examples/Focal'
@@ -33,6 +34,7 @@ function Demos() {
       <SVG />
       <ContainInside />
       <ContainOutside />
+      <ContainTrue />
       <Exclude />
       <DisabledYAxis />
       <Rotate />

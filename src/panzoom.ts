@@ -179,6 +179,7 @@ function Panzoom(
     panOptions?: PanOptions
   ) {
     const opts = { ...options, ...panOptions }
+    let contain = opts.contain
     const result = { x, y, opts }
     if (!opts.force && (opts.disablePan || (opts.panOnlyWhenZoomed && scale === opts.startScale))) {
       return result
@@ -194,7 +195,7 @@ function Panzoom(
       result.y = (opts.relative ? y : 0) + toY
     }
 
-    if (opts.contain) {
+    if (contain) {
       const dims = getDimensions(elem)
       const realWidth = dims.elem.width / scale
       const realHeight = dims.elem.height / scale
@@ -203,7 +204,13 @@ function Panzoom(
       const diffHorizontal = (scaledWidth - realWidth) / 2
       const diffVertical = (scaledHeight - realHeight) / 2
 
-      if (opts.contain === 'inside') {
+      if (contain === true) {
+        contain =
+          scaledWidth > dims.parent.width || scaledHeight > dims.parent.height
+            ? 'outside'
+            : 'inside'
+      }
+      if (contain === 'inside') {
         const minX = (-dims.elem.margin.left - dims.parent.padding.left + diffHorizontal) / toScale
         const maxX =
           (dims.parent.width -
@@ -226,24 +233,54 @@ function Panzoom(
             diffVertical) /
           toScale
         result.y = Math.max(Math.min(result.y, maxY), minY)
-      } else if (opts.contain === 'outside') {
-        const minX =
-          (-(scaledWidth - dims.parent.width) -
-            dims.parent.padding.left -
-            dims.parent.border.left -
-            dims.parent.border.right +
-            diffHorizontal) /
-          toScale
-        const maxX = (diffHorizontal - dims.parent.padding.left) / toScale
+      } else if (contain === 'outside') {
+        let minX, maxX
+        if (scaledWidth - dims.parent.width < 0) {
+          minX = (-dims.elem.margin.left - dims.parent.padding.left + diffHorizontal) / toScale
+          maxX =
+            (dims.parent.width -
+              scaledWidth -
+              dims.parent.padding.left -
+              dims.elem.margin.left -
+              dims.parent.border.left -
+              dims.parent.border.right +
+              diffHorizontal) /
+            toScale
+        } else {
+          minX =
+            (-(scaledWidth - dims.parent.width) -
+              dims.parent.padding.left -
+              dims.elem.margin.left -
+              dims.parent.border.left -
+              dims.parent.border.right +
+              diffHorizontal) /
+            toScale
+          maxX = (diffHorizontal - dims.parent.padding.left - dims.elem.margin.left) / toScale
+        }
         result.x = Math.max(Math.min(result.x, maxX), minX)
-        const minY =
-          (-(scaledHeight - dims.parent.height) -
-            dims.parent.padding.top -
-            dims.parent.border.top -
-            dims.parent.border.bottom +
-            diffVertical) /
-          toScale
-        const maxY = (diffVertical - dims.parent.padding.top) / toScale
+        let minY, maxY
+        if (scaledHeight - dims.parent.height < 0) {
+          minY = (-dims.elem.margin.top - dims.parent.padding.top + diffVertical) / toScale
+          maxY =
+            (dims.parent.height -
+              scaledHeight -
+              dims.parent.padding.top -
+              dims.elem.margin.top -
+              dims.parent.border.top -
+              dims.parent.border.bottom +
+              diffVertical) /
+            toScale
+        } else {
+          minY =
+            (-(scaledHeight - dims.parent.height) -
+              dims.parent.padding.top -
+              dims.elem.margin.top -
+              dims.parent.border.top -
+              dims.parent.border.bottom +
+              diffVertical) /
+            toScale
+          maxY = (diffVertical - dims.parent.padding.top - dims.elem.margin.top) / toScale
+        }
         result.y = Math.max(Math.min(result.y, maxY), minY)
       }
     }
